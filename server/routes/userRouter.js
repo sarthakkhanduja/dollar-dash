@@ -1,4 +1,7 @@
-const { userSignUpSchema } = require("../zod_validations/types");
+const {
+  userSignUpSchema,
+  userSignInSchema,
+} = require("../zod_validations/types");
 const { User } = require("../database/db");
 const express = require("express");
 const router = express.Router();
@@ -7,6 +10,7 @@ const router = express.Router();
 router.post("/signup", async (req, res) => {
   // Getting the values passed by the user in the request body, and running it through the Zod validations created for it
   const body = userSignUpSchema.safeParse(req.body);
+  console.log(body);
 
   // Checking if the body met the zod validations (body.success = true)
   if (body.success) {
@@ -38,6 +42,7 @@ router.post("/signup", async (req, res) => {
         } catch (err) {
           res.status(500).json({
             message: "Error while trying to create the user",
+            error: err,
           });
         }
       } else {
@@ -48,6 +53,7 @@ router.post("/signup", async (req, res) => {
     } catch (err) {
       res.status(500).json({
         message: "Some error occurred while connecting to the database",
+        error: err,
       });
     }
   } else {
@@ -58,10 +64,46 @@ router.post("/signup", async (req, res) => {
 });
 
 // Route to Sign in for the User
-router.post("/signin", (req, res) => {
-  res.status(200).json({
-    message: "This is the sign in route",
-  });
+router.post("/signin", async (req, res) => {
+  // Getting the values passed by the user in the request body, and running it through the Zod validations created for it
+  const body = userSignInSchema.safeParse(req.body);
+
+  if (body.success) {
+    // Look for the user who's username has been sent
+    try {
+      const requestUser = await User.findOne({
+        username: body.data.username,
+      });
+
+      if (!requestUser) {
+        res.status(411).json({
+          message: "User not found",
+        });
+      } else {
+        // Considering the user is found in the database, we'll hash the password given first, and match it with the password_hash we have in the database
+        if (await requestUser.validatePassword(req.body.password)) {
+          return res.status(200).json({
+            message: "User Successfully Logged In",
+            // Since the user is verified, we need to sign a JWT and send it in the response
+          });
+        } else {
+          return res.status(400).json({
+            message: "Incorrect Password",
+          });
+        }
+      }
+    } catch (err) {
+      // console.log(err);
+      res.status(500).json({
+        message: "Some error occurred while connecting to the database",
+        error: err,
+      });
+    }
+  } else {
+    res.status(422).json({
+      message: "Inputs passed within the body did not pass the validations",
+    });
+  }
 });
 
 module.exports = router;
