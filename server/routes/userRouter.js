@@ -5,6 +5,9 @@ const {
 const { User } = require("../database/db");
 const express = require("express");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
+const authMiddleware = require("../middlewares/authMiddleware");
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Route to Sign Up for the User
 router.post("/signup", async (req, res) => {
@@ -82,9 +85,15 @@ router.post("/signin", async (req, res) => {
       } else {
         // Considering the user is found in the database, we'll hash the password given first, and match it with the password_hash we have in the database
         if (await requestUser.validatePassword(req.body.password)) {
+          // Since the user is verified, we need to sign a JWT and send it in the response
+          const token = jwt.sign(
+            {
+              username: body.data.username,
+            },
+            JWT_SECRET
+          );
           return res.status(200).json({
-            message: "User Successfully Logged In",
-            // Since the user is verified, we need to sign a JWT and send it in the response
+            token: "Bearer " + token,
           });
         } else {
           return res.status(400).json({
@@ -104,6 +113,12 @@ router.post("/signin", async (req, res) => {
       message: "Inputs passed within the body did not pass the validations",
     });
   }
+});
+
+router.get("/", authMiddleware, (req, res) => {
+  res.status(200).json({
+    message: "This is the GET method for /",
+  });
 });
 
 module.exports = router;
