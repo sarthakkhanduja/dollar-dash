@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "The server-side of DollarDash",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Digital",
+    "Payments",
+    "Dollar",
+    "Money",
+    "Application",
+    "Back-end",
+    "Server"
+  ],
+  "author": "Sarthak Khanduja",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.2.0",
+    "zod": "^3.22.4"
+  }
+}
